@@ -54,8 +54,8 @@ def player(state, per):
     faceupCards = state[18:150].reshape(12,-1)
     faceupCards_l0_l1 = faceupCards[:8]
     faceupCards_l2 = faceupCards[8:]
-    totalCostFaceUpCards_l0_l1 = np.sum(faceupCards_l0_l1, axis=1)[-5:-1]
-    totalCostFaceUpCards_l2 = np.sum(faceupCards_l2, axis=1)[-5:-1]
+    totalCostFaceUpCards_l0_l1 = np.sum(faceupCards_l0_l1, axis=1)[-5:]
+    totalCostFaceUpCards_l2 = np.sum(faceupCards_l2, axis=1)[-5:]
     if np.sum(totalCostFaceUpCards_l0_l1) > 0:
         mostThreeTokens = (-totalCostFaceUpCards_l0_l1).argsort()[:3] + 31
     else:
