@@ -6,6 +6,6 @@
 4. Splendor ~59%
 5. Splendor_v2 ~64%
 6. Splendor_v3 ~63%
-7. SushiGo ~50%
+7. SushiGo ~54%
 8. TLMN ~40%
 9. Durak ~29%
