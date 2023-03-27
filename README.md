@@ -1,7 +1,7 @@
 ﻿# VIS_3thMONTH
 ## Currently winrate
 1. Century ~25%
-2. Machi Koro ~37%
+2. Machi Koro ~38%
 3. Sheriff ~93%
 4. Splendor ~59%
 5. Splendor_v2 ~64%
