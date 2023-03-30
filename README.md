@@ -9,4 +9,4 @@
 7. SushiGo ~54%
 8. TLMN ~50%
 9. Durak ~33%
-10. Catan_v2 ~53%
+10. Catan_v2 ~56%
