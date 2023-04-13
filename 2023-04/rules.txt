@@ -1,0 +1,51 @@
+Tổng quan:
+    - Trong mỗi vòng chơi Welcome to the Dungeon, người chơi đặt giá thầu
+    để xem người chơi nào có thể đưa một hero vào ngục với một số trang bị. 
+    - Đến lượt của bạn, bạn có thể thêm quái vật vào ngục, loại bỏ trang bị 
+    khỏi hero,hoặc bỏ cuộc đấu thầu. 
+    - Người chơi cuối cùng trong cuộc đấu thầu mất hero vào ngục và đối mặt 
+    với tất cả các quái vật đã được đặt trong vòng này, với những trang bị nhỏ 
+    nào hero đã bỏ đi.
+Mục tiêu:
+    - Nếu bạn vượt qua hai ngục thành công, bạn sẽ thắng trò chơi;
+    tuy nhiên, nếu bạn thất bại trong hai ngục, bạn sẽ bị loại. 
+    Như vậy, bạn cũng có thể giành chiến thắng trong trò chơi bằng cách trở thành người chơi cuối cùng còn lại trong trò chơi.
+Nội dung:
+    - Các thành phần trong trò chơi bao gồm:
+        + 13 thẻ quái vật (moster cards)
+        + 4 thẻ hỗ trợ người chơi (player aids)
+        + 4 thẻ hero (adventurer tiles)
+        + 24 thẻ trang bị (equipment tiles)
+        + 8 thẻ thành công (success cards)
+Thiết lập:
+    - Chọn hoặc rút ngẫu nhiên 1 thẻ hero và đặt nó ở giữa bàn.
+    - Sắp xếp sáu ô trang bị tương ứng với hero.
+    - Xáo trộn các thẻ quái vật, úp tập này xuống.
+    - Đưa cho mỗi người chơi 1 thẻ hỗ trợ người chơi, đặt trước mặt người chơi,
+    mặt trắng lên trên.
+    - Dành ra một chỗ cho ngục tối (nơi đặt cá thẻ quái vật vào mỗi vòng).
+    - Đặt 5 thẻ thành công gần đó, 3 thẻ còn lại đặt trong hộp.
+    - Chọn ngẫu nhiên người chơi bắt đầu.
+Cách chơi:
+    - Trò chơi bao gồm nhiều vòng, mỗi vòng người chơi sẽ đấu thầu để quyết định người chơi nào đưa hero vào ngục.
+    - Một vòng chơi gồm 2 giai đoạn:
+        + Giai đoạn đấu thầu. Giai đoạn này diễn ra theo chiều kim đồng hồ. Đến phiên của bạn, bạn phải chọn 1 trong các cách sau:
+            * Rút 1 thẻ quái vật (trên cùng) Không để người khác nhìn thấy lá này
+                . Thêm quái vật vào hầm ngục
+                    Bạn đặt úp thẻ quái vật trong khu vực hầm ngục (bạn có thể đếm số lượng thẻ trong hầm, không được nhìn)
+                . Úp bài trước mặt bạn (bạn phải hi sinh trang bị của hero, đặt lên trên bài quái vật)
+                    Khi đó quái vật và trang bị này bị bỏ khỏi trò chơi.
+                . Nếu hero không còn trang bị, bạn bắt buộc phải đưa quái vật vào hầm ngục.
+            * Bỏ lượt và chờ đến vòng tiếp theo. (Nếu hết thẻ quái vật, bạn phải bỏ lượt)
+        ==> Giai đoạn đấu thầu kết thúc khi 3/4 người chơi chọn bỏ qua. Người chơi còn lại sẽ phải đưa nhà thám hiểu vào hầm ngục.
+        + Giai đoạn ngục tối:
+            * Người chơi tiến vào hầm ngục cộng tất cả giá trị HP trên thẻ thám hiểm và thẻ trang bị lại.
+                . Lật lần lượt các thẻ quái vật, nếu:
+                    Người chơi có trang bị đánh bại quái vật, người chơi không mất máu
+                    Nếu không có, người chơi mất máu theo sức mạnh quái vật
+                . Đến khi không còn quái vật, nếu:
+                    Máu bị mất ít hơn HP thì chiến thắng vòng, lấy 1 thẻ thành công
+                    Máu bị mất lớn hơn hoặc bằng HP thì thua vòng, nếu:
+                        thẻ hỗ trợ người chơi đang mặt trắng thì đổi sang mặt đỏ
+                        thẻ hỗ trợ người chơi đang mặt đỏ thì người chơi bị loại
+        ==> Bắt đầu lại với người chơi đầu tiên là người chơi vừa tiến vào hầm ngục lượt trước đó.
