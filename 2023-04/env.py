@@ -388,8 +388,6 @@ def one_game_numba(p0, list_other, per_player, per1, per2, per3, p1, p2, p3):
         elif list_other[idx] == 3:
             action, per3 = p3(player_state,per3)
 
-        print("Người chơi chọn hành động:", action)
-
         stepEnv(action, env)
         winner = checkEnded(env)
         if winner != -1:
