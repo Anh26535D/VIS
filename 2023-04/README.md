@@ -1,7 +1,7 @@
 ##  Thông tin quan trọng:
     [0:4]: Trạng thái bỏ lượt của mọi người
     [4:12]: Điểm của mọi người
-    __STATE_SIZE__ = 71
+    __STATE_SIZE__ = 83
     __ACTION_SIZE__ = 14
     __AGENT_SIZE__ = 4
 
@@ -46,7 +46,6 @@
         [68]: Bracelet Of Protection: HP+3
     [69]: Trong Bidding hay Dungeon (0 là bidding)
     [70:83]: Lá quái vật nào vừa mở (1 là mở, 0 là không)
-
 
 
 ## :globe_with_meridians: env_state
