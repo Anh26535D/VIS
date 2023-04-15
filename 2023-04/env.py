@@ -252,7 +252,8 @@ def stepEnv(action, env):
                     if attack == 7:
                         attack = 0
                 env[92] -= attack
-        elif env[82] == 0:
+
+        if env[82] == 0:
             if env[83] == 1:
                 if env[84]>0:
                     env[pIdx*2 + 4] += 1
@@ -262,6 +263,15 @@ def stepEnv(action, env):
                 if env[92]>0:
                     env[pIdx*2 + 4] += 1
                 else:
+                    env[pIdx*2 + 5] += 1
+            if checkEnded(env) == -1:
+                resetRound(env)
+        else:
+            if env[83] == 1:
+                if env[84]<=0:
+                    env[pIdx*2 + 5] += 1
+            else:
+                if env[92]<=0:
                     env[pIdx*2 + 5] += 1
             if checkEnded(env) == -1:
                 resetRound(env)
@@ -312,7 +322,7 @@ def one_game_normal(p0, list_other, per_player, per1, per2, per3, p1, p2, p3):
     env = initEnv()
     resetRound(env)
     winner = -1
-    while env[99] < 10000:
+    while env[99] < 500:
         idx = env[99]%4
         player_state = getAgentState(env)
         if list_other[idx] == -1:
@@ -363,7 +373,7 @@ def one_game_numba(p0, list_other, per_player, per1, per2, per3, p1, p2, p3):
     env = initEnv()
     resetRound(env)
     winner = -1
-    while env[99] < 10000:
+    while env[99] < 500:
         idx = env[99]%4
         player_state = getAgentState(env)
         if list_other[idx] == -1:
@@ -377,6 +387,8 @@ def one_game_numba(p0, list_other, per_player, per1, per2, per3, p1, p2, p3):
             action, per2 = p2(player_state,per2)
         elif list_other[idx] == 3:
             action, per3 = p3(player_state,per3)
+
+        print("Người chơi chọn hành động:", action)
 
         stepEnv(action, env)
         winner = checkEnded(env)
