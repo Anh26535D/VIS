@@ -4,3 +4,4 @@
 2. Durak ~ 55%
 3. Exploding ~ 25%
 4. Welcome to the Dungeon ~ 100%
+5. Fantan ~ 58%
