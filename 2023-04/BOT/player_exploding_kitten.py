@@ -39,28 +39,48 @@ def DataAgent():
 
 @njit()
 def Test(state, per):
-    validActions = getValidActions(state) 
+    validActions = getValidActions(state)
     validActions = np.where(validActions == 1)[0]
+
+    for i in (8, 7):
+        if i in validActions and state[25]<10 and np.min(state[87:91])<5:
+            return i, per
+
+    if state[11]>0:
+        if 6 in validActions:
+            return 6, per
+        
     if np.argmax(state[87:91])+11 in validActions:
         return np.argmax(state[87:91])+11, per
-    for i in (10, 9, 8, 7, 6, 1, 2, 4, 5, 3, 0, 11):
+    
+    for i in (5, 10, 9, 8, 7, 6, 1, 2, 4, 3, 0, 11):
         if i+15 in validActions:
             return i+15, per
-    for i in (11, 0, 3, 5, 4, 2, 1, 6, 7, 8, 9, 10):
+    if np.sum(state[6:11])>0:
+        for i in (6, 7, 8, 9, 10):
+            if i+15 in validActions:
+                return i+15, per
+    for i in (11, 0, 3, 4, 2, 1):
         if i+27 in validActions:
             return i+27, per
-    for i in (11, 0, 3, 5, 4, 2, 1, 6, 7, 8, 9, 10):
+    if np.sum(state[6:11])>0:
+        for i in (6, 7, 8, 9, 10):
+            if i+27 in validActions:
+                return i+27, per
+    for i in (11, 1, 2, 4, 3):
         if i+39 in validActions:
             return i+39, per
-    for i in (9, 7, 8):
+
+    for i in (3, 9):
         if i in validActions:
             return i, per
-    if 10 in validActions:
-        return 10, per
-    for i in (3, 0, 6, 5, 4, 2, 1):
-        if i in validActions:
-            return i, per
-    action = np.random.choice(validActions)
+     
+    if state[26]==2:
+        for i in (1, 2, 0, 4):
+            if i in validActions:
+                return i, per
+            
+    action = validActions[-1]
     return action, per
 
 
