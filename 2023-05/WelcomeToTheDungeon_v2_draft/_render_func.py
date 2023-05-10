@@ -132,11 +132,26 @@ def addEquips(background, state):
     return background
 
 def addSeenMonster(background, state):
-    idx_monster = np.where(state[14:53].reshape(13,-1)[:, 0]>0)[0]
+    monsters_ = state[14:53].reshape(13,-1)
+    idx_monster = np.where(monsters_[:, 0]>0)[0]
     if len(idx_monster)>0:
         j = 0
         for idx in idx_monster:
             background.paste(sprites.monsterImgs[idx], (0+j*100,0))
+            if monsters_[idx][2] == 1:
+                background = addText(
+                    background,
+                    "Bị bỏ nha",
+                    (0+j*100,120),
+                    fontSize=20
+                )
+            elif monsters_[idx][1]>0:
+                background = addText(
+                    background,
+                    f"{int(monsters_[idx][1])}",
+                    (0+j*100,120),
+                    fontSize=20
+                )               
             j += 1
     return background
 
@@ -303,13 +318,13 @@ def get_main_player_state(env_components: Env_components, list_agent, list_data,
     else:
         my_idx = np.where(env_components.list_other == -1)[0][0]
         env = env_components.env.copy()
+        env[99] = my_idx
         state = _env.getAgentState(env)
         if my_idx == env_components.winner:
             win = 1
         else:
             win = 0
-        print(env_components.list_other)
-        print(env[4:12].reshape(4,-1))
+
         # Chạy turn cuối cho 3 bot hệ thống
         for p_idx in range(4):
             if p_idx != my_idx:
