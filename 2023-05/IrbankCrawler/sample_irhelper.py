@@ -9,8 +9,8 @@ options = edge.options.Options()
 options.add_argument("--headless=new")
 driver = webdriver.Edge(options=options)
 
-REPORT_TYPE = "pl"
-C_CODE = "E00015"
+REPORT_TYPE = "bs"
+C_CODE = "E01244"
 
 codes = getValidCodes(C_CODE)
 

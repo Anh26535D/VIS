@@ -3,6 +3,14 @@ import pandas as pd
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
 
+import sys
+import codecs
+
+try:
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer)
+except:
+    pass
+
 def getValidCodes(c_code="E01244"):
     link = f"https://irbank.net/{c_code}/reports"
     rs = r.get(link)
@@ -15,7 +23,6 @@ def getValidCodes(c_code="E01244"):
     for block in list_block:
         list_a = block.find_all("a")
         try:
-            title = "".join([i.string for i in list_a])
             link_basic = list_a[0]["href"]
             link = list_a[-1]["href"]
             key = f'{link_basic}'
@@ -37,6 +44,17 @@ def getValidCodes(c_code="E01244"):
             result.append(code[:-3])
 
     return result
+
+def normalize_series(series, delimiter="__"):
+    suffix = []
+    for v in series:
+        lst = v.split(delimiter)
+        suffix.append(lst[-1])
+    for i in range(len(series)):
+        suff = series[i].split(delimiter)[-1]
+        if suffix.count(suff) == 1:
+            series[i] = suff
+    return series
 
 def get_data(table):
     data = []
@@ -61,7 +79,7 @@ def get_data(table):
         cls = row.get_attribute('class')
         if cls == 'row3':
             if prev_check == 1:
-                mem[-1] = mem[-1] + "__" + cols[0].text.replace('\n', ' ')
+                mem[-1] = mem[-1] + "___" + cols[0].text.replace('\n', ' ')
             else:
                 mem.append(cols[0].text.replace('\n', ' '))
             prev_check = 1
@@ -75,18 +93,19 @@ def get_data(table):
             value = cols[-1].text.replace('\n', ' ')            
             r.append(value)
             data.append(r)
-    return pd.DataFrame(data)    
 
+    return pd.DataFrame(data)  
+  
 def concat_data(dfs):
     v_index_val = []
     h_index_val = []
     for df in dfs:
         for v in df.iloc[:, 0]:
             if v not in v_index_val:
-                v_index_val.append(v)
+                v_index_val.append(u"{}".format(v))
         for v in df.loc[0]:
             if v not in h_index_val:
-                h_index_val.append(v)
+                h_index_val.append(u"{}".format(v))
     h_index_val = h_index_val[1:]
     dict_data = {k: [] for k in v_index_val}
     for df in dfs:
@@ -101,4 +120,11 @@ def concat_data(dfs):
                 dict_data[k].append(df.iloc[idx, -1])
             else:
                 dict_data[k].append("")
-    return dict_data
+
+    old_keys = [format(v) for v in dict_data.keys()]
+    new_keys = normalize_series(old_keys)
+    dataset = {}
+    old_keys = [format(v) for v in dict_data.keys()]
+    for old_key, new_key in zip(old_keys, new_keys):
+        dataset[new_key] = dict_data[old_key]
+    return dataset
