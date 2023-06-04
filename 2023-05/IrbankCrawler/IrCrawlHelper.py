@@ -99,7 +99,6 @@ def get_data(table):
 
     return pd.DataFrame(data)
 
-
 def concat_data(dfs):
     v_index_val = []
     h_index_val = []
