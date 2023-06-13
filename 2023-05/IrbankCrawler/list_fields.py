@@ -36,3 +36,4 @@ for doc_type in ("pl", "bs"):
     with open(f'{doc_type}_fields.csv', 'w', newline='', encoding='utf-8') as csvfile:
         csvwriter = csv.writer(csvfile)  
         csvwriter.writerows([[v] for v in fields])
+

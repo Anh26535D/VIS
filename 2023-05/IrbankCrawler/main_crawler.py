@@ -9,25 +9,22 @@ import gc
 from IrCrawlHelper import *
 
 ROOT_PATH = "F:/DVA_irbank"
-LIST_COMPANIES_PATH = "F:/DVA_irbank/delist_ccode.csv"
+LIST_COMPANIES_PATH = "F:/DVA_irbank/ccode.csv"
 EXECUTABLE_PATH = "C:/web_driver/chromedriver.exe"
 
 
 service = Service(EXECUTABLE_PATH)
 options = chrome.options.Options()
 options.add_argument("--headless=new")
-driver = webdriver.Chrome(service=service, options=options)
 
 ROOT_LINK = "https://irbank.net/"
 
 companyIDs = pd.read_csv(LIST_COMPANIES_PATH)
 
-for f_code, C_CODE in companyIDs[["fcode", "ccode"]].to_numpy():
+# driver = webdriver.Chrome(options=options)
+
+for f_code, C_CODE in companyIDs[["fcode", "ccode"]][2678:].to_numpy():
     print(f"====== BEGIN {f_code}: {C_CODE} ======")
-    # Clear old driver
-    del driver
-    _ = gc.collect()
-    driver = webdriver.Chrome(service=service, options=options)
 
     for REPORT_TYPE in ["pl", "bs"]:
         print(f"============ begin type: {REPORT_TYPE}")
@@ -38,33 +35,41 @@ for f_code, C_CODE in companyIDs[["fcode", "ccode"]].to_numpy():
             codes = getValidCodes(
                 C_CODE
             )  # if the company has no data, it will raise an exception
-            # Clear old driver
-            del driver
-            _ = gc.collect()
-            driver = webdriver.Chrome(service=service, options=options)
-            for code in tqdm(codes):
-                link = f"https://irbank.net/{C_CODE}/{code}/{REPORT_TYPE}"
-                try:  # if the code has no data, it will raise an exception
-                    driver.get(link)
-                    sleep(1)
-
-                    table = driver.find_element(By.ID, f"c_{REPORT_TYPE}1")
-                    data = get_data(table)
-                    dfs.append(data)
-                except:
-                    print(f"============ {code} has no {REPORT_TYPE} data")
-                    continue
-            data = concat_data(dfs)
-            driver.quit()
         except:
             print(f"============ {f_code} has no {REPORT_TYPE} data")
+            continue
+
+        driver = webdriver.Chrome(options=options)
+        length_codes = len(codes)
+        for i in tqdm(range(length_codes)):
+            link = f"https://irbank.net/{C_CODE}/{codes[i]}/{REPORT_TYPE}"
+            try:  # if the code has no data, it will raise an exception
+                driver.get(link)
+                sleep(1)
+
+                table = driver.find_element(By.ID, f"c_{REPORT_TYPE}1")
+            except:
+                print(f"============ {codes[i]} has no {REPORT_TYPE} data")
+                continue
+            if i == length_codes - 1:
+                dt_tables = get_data(table, True)
+            else:
+                dt_tables = get_data(table)
+            for dt_table in dt_tables:
+                dfs.append(dt_table)
+        data = concat_data(dfs)
+
+        # # Clear old driver
+        # del driver
+        # _ = gc.collect()
+        driver.close()
 
         if REPORT_TYPE == "pl":
             report_comp = "IncomeStatement"
         elif REPORT_TYPE == "bs":
             report_comp = "BalanceSheet"
         with open(
-            ROOT_PATH + f"/Financial/{report_comp}/{f_code}.csv",
+            ROOT_PATH + f"/Financial_2/{report_comp}/{f_code}.csv",
             "w",
             newline="",
             encoding="utf-8",

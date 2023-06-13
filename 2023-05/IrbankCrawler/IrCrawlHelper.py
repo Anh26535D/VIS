@@ -2,6 +2,8 @@ import requests as r
 import pandas as pd
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
+from collections import Counter
+import csv
 
 import sys
 import codecs
@@ -31,7 +33,7 @@ def getValidCodes(c_code="E01244"):
         except:
             pass
 
-    for col in stock_slice_batch.columns[1:5]:
+    for col in stock_slice_batch.columns[0:5]:
         for row in stock_slice_batch.index:
             t = stock_slice_batch[col][row]
             for key in dict_.keys():
@@ -39,95 +41,98 @@ def getValidCodes(c_code="E01244"):
                     stock_slice_batch[col][row] = dict_[key]
 
     fy_report_codes = stock_slice_batch[("通期", None)]
+    fy_old_report_codes = stock_slice_batch[("年度", None)]
+
     result = []
     for code in fy_report_codes:
         if code[-2:] == "pl" and code[:-3] not in result:
             result.append(code[:-3])
 
+    for code in fy_old_report_codes:
+        if code[-2:] == "pl" and code[:-3] not in result:
+            result.append(code[:-3])
+
     return result
 
-
 def normalize_series(series, delimiter="__"):
-    suffix = []
-    for v in series:
-        lst = v.split(delimiter)
-        suffix.append(lst[-1])
+    suffix_counts = Counter([v.split(delimiter)[-1] for v in series])
     for i in range(len(series)):
         suff = series[i].split(delimiter)[-1]
-        if suffix.count(suff) == 1:
+        if suffix_counts[suff] == 1:
             series[i] = suff
     return series
 
 
-def get_data(table):
+def get_data(table, useAllColumns = False):
     data = []
-    h = []
+    
     rows = table.find_elements(By.XPATH, ".//tbody/tr")
+
     headers = rows[0].find_elements(By.XPATH, ".//th")
-    if len(headers) > 2:
-        for header in headers[0::2]:
-            value = header.text.replace("\n", " ")
-            h.append(value)
-    else:
-        for header in headers:
-            value = header.text.replace("\n", " ")
-            h.append(value)
+    header_range = range(len(headers)) if (len(headers)<=2 or useAllColumns) else range(0, len(headers), 2)
+    h = [headers[i].text.replace("\n", " ") for i in header_range]
     data.append(h)
 
-    mem = []
-    prev_check = 0
+    indents = [[] for i in range(10)]
     for row in rows[1:]:
         r = []
         cols = row.find_elements(By.XPATH, ".//td")
-        cls = row.get_attribute("class")
-        if cls == "row3":
-            if prev_check == 1:
-                mem[-1] = mem[-1] + "___" + cols[0].text.replace("\n", " ")
+        for col in cols:
+            class_of_col = col.get_attribute("class").split(" ")[0]
+            if "indent" in class_of_col:
+                try:
+                    number = int(class_of_col[-1])
+                except:
+                    number = 0
+                    print(f"Something wrong with this indent: {class_of_col}")
+                indents[number].append(col.text.replace("\n", " "))
+                txt = indents[number][-1]
+                number -= 1
+                while number > 0:
+                    if len(indents[number]) > 0:
+                        txt = indents[number][-1] + "__" + txt
+                    number -= 1
+                r.append(txt)
             else:
-                mem.append(cols[0].text.replace("\n", " "))
-            prev_check = 1
-        else:
-            prev_check = 0
-            value = cols[0].text.replace("\n", " ")
-            if len(mem) > 0:
-                value = str(mem[-1]) + "__" + value
-            r.append(value)
+                if cols[-1] == col or useAllColumns:
+                    r.append(col.text.replace("\n", " "))
+        data.append(r)
+    data = pd.DataFrame(data)
+    data.iloc[:, 0] = normalize_series(data.iloc[:, 0])
 
-            value = cols[-1].text.replace("\n", " ")
-            r.append(value)
-            data.append(r)
-
-    return pd.DataFrame(data)
+    if len(data.columns) > 2:
+        first_column = data.columns[0]
+        extracted_dfs = [data[[first_column, column]] for column in data.columns[1:]]
+    else:
+        extracted_dfs = [data]
+    return extracted_dfs[::-1]
 
 def concat_data(dfs):
     v_index_val = []
-    h_index_val = []
     for df in dfs:
         for v in df.iloc[:, 0]:
             if v not in v_index_val:
-                v_index_val.append("{}".format(v))
-        for v in df.loc[0]:
-            if v not in h_index_val:
-                h_index_val.append("{}".format(v))
-    h_index_val = h_index_val[1:]
+                v_index_val.append(v)
+
     dict_data = {k: [] for k in v_index_val}
+
     for df in dfs:
-        for k in dict_data.keys():
-            temp_df = df.iloc[:, 0]
-            if k in temp_df.tolist():
-                idx = 0
-                for value in temp_df:
-                    if value == k:
-                        break
-                    idx += 1
+        for k in v_index_val:
+            index_column = df.iloc[:, 0]
+            if k in index_column.tolist():
+                idx = index_column[index_column == k].index[0]
                 dict_data[k].append(df.iloc[idx, -1])
             else:
                 dict_data[k].append("")
 
-    old_keys = [format(v) for v in dict_data.keys()]
-    new_keys = normalize_series(old_keys)
-    dataset = {}
-    old_keys = [format(v) for v in dict_data.keys()]
-    for old_key, new_key in zip(old_keys, new_keys):
-        dataset[new_key] = dict_data[old_key]
-    return dataset
+    return dict_data
+
+def writeToCsv(data, path):
+    with open(
+        path,
+        "w",
+        newline="",
+        encoding="utf-8",
+    ) as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerows([[k] + v for k, v in data.items()])
