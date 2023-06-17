@@ -1,13 +1,11 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver import chrome
-from selenium.webdriver import edge
 from selenium.webdriver.chrome.service import Service
-from time import sleep
 import csv
 from tqdm import tqdm
 import gc
-from IrCrawlHelper import *
+import pandas as pd
 
 ROOT_PATH = "F:/DVA_irbank"
 LIST_COMPANIES_PATH = "F:/DVA_irbank/full_ccode.csv"
@@ -31,7 +29,7 @@ companyIDs = pd.read_csv(LIST_COMPANIES_PATH)
 
 TIMER = 20
 
-for f_code, C_CODE in companyIDs[["fcode", "ccode"]][2230:].to_numpy():
+for f_code, C_CODE in companyIDs[["fcode", "ccode"]].to_numpy():
     print(f"====== BEGIN {f_code}: {C_CODE} ======")
     # Clear old driver
     if TIMER <= 0:
