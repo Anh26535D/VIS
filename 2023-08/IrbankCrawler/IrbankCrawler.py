@@ -42,7 +42,8 @@ class IrbankCrawler:
     def closeDriver(self):
         self.driver.close()
 
-    def setDocumentLink(self, company_code, document_code, report_type):
+    @staticmethod
+    def setDocumentLink(company_code, document_code, report_type):
         '''Get the document link from company code, document code and report type
 
             Parameters
@@ -68,7 +69,8 @@ class IrbankCrawler:
         link = link.replace("report_type", str(report_type))
         return link
     
-    def setReportLink(self, code):
+    @staticmethod
+    def setReportLink(code):
         '''Get the report link from financial code
 
             Parameters
@@ -100,7 +102,7 @@ class IrbankCrawler:
                 Pair of symbol and code
         
         '''
-        link = self.setReportLink(symbol)
+        link = IrbankCrawler.setReportLink(symbol)
         session = r.Session()
         try:
             response = session.get(link)
