@@ -2,13 +2,13 @@ import requests as r
 import pandas as pd
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
-from collections import Counter
+from collections import Counter, defaultdict
 from tqdm import tqdm
 
 from selenium import webdriver
 from selenium.webdriver import chrome
 from selenium.webdriver import edge
-import json
+
 
 import sys
 import codecs
@@ -86,92 +86,33 @@ class IrbankCrawler:
         link = link.replace("financial_code", str(code))
         return link
 
-    def getCompanyCode(self, f_code):
-        '''Get the company code from financial code
+    def getCompanyCode(self, symbol):
+        '''Get the company code from symbol
 
             Parameters
             ----------
-            f_code : int
+            symbol : int
                 Financial code 
             
             Returns
             -------
-            [f_code, c_code] : list with shape of (2,)
-                Pair of financial code and company code
+            [symbol, code] : list with shape of (2,)
+                Pair of symbol and code
         
         '''
-        link = self.setReportLink(f_code)
+        link = self.setReportLink(symbol)
         session = r.Session()
         try:
             response = session.get(link)
             if response.status_code == 200:
                 report_url = response.url
-                c_code = report_url.split("/")[3]
-                return [f_code, c_code]
+                code = report_url.split("/")[3]
+                return [symbol, code]
             else:
-                print(f"Something wrong with {f_code}")
+                print(f"Something wrong with {symbol}")
                 return [None, None]
         except r.exceptions.RequestException:
             return [None, None]
-
-    def getValidDocumentCodes(self, ccode, report_link=None):
-        ''' Extract all document codes from financial report link, or from given company code (ccode)
-
-            .. note::
-            This method is only work with irbank report link, 
-            and with only format like table this link: https://irbank.net/E00015/reports
-
-            Parameters
-            ----------
-            ccode : str
-                Company code 
-
-            report_link : str
-                Link to financial report
-
-            Returns
-            -------
-            report_codes : list
-                List of string report codes
-        '''
-        if report_link is not None:
-            link = report_link
-        else:
-            link = self.setReportLink(ccode)
-        rs = r.get(link)
-        
-        rsp = BeautifulSoup(rs.content, "html.parser")
-        table = rsp.find("table")
-        stock_slice_batch = pd.read_html(str(table), extract_links="all")[0]
-        list_block = table.find_all("td")
-        dict_ = {}
-        for block in list_block:
-            list_a = block.find_all("a")
-            try:
-                link_basic = list_a[0]["href"]
-                link = list_a[-1]["href"]
-                key = f"{link_basic}"
-                dict_[key] = link
-            except:
-                pass
-
-        for col in stock_slice_batch.columns[0:5]:
-            for row in stock_slice_batch.index:
-                t = stock_slice_batch[col][row]
-                for key in dict_.keys():
-                    if t[1] == key:
-                        stock_slice_batch[col][row] = dict_[key]
-
-        fy_report_codes = stock_slice_batch[("通期", None)].to_list()
-        fy_old_report_codes = stock_slice_batch[("年度", None)].to_list()
-        fy_report_links = fy_report_codes + fy_old_report_codes
-
-        report_codes = []
-        for code in fy_report_links:
-            if code[-2:] == "pl" and code[:-3] not in report_codes:
-                report_codes.append(code[:-3])
-
-        return report_codes
 
     def normalizeSeries(self, series, delimiter="__"):
         '''Normalize series of string
@@ -214,7 +155,7 @@ class IrbankCrawler:
                 new_list.append(item)
         return new_list
 
-    def getDataFromTable(self, table, useAllColumns = False):
+    def getDataFromTable(self, table):
         '''Get the data from the given table with irbank format.
             The table includes 1 column for title, and others are content columns of, each column is differennt year
             In the title columns, each row has its intent and wil be crawled as format:
@@ -224,10 +165,6 @@ class IrbankCrawler:
             ----------
             table : WebElement
                 Table with irbank format
-            
-            useAllColumns : bool
-                If useAllColumns is True, all columns of the table will be extracted,
-                else just extract the first and the last column.
 
             Returns
             -------
@@ -240,7 +177,7 @@ class IrbankCrawler:
         rows = table.find_elements(By.XPATH, ".//tbody/tr")
 
         headers = rows[0].find_elements(By.XPATH, ".//th")
-        header_range = range(len(headers)) if (len(headers)<=2 or useAllColumns) else range(0, len(headers), 2)
+        header_range = range(len(headers))
         h = [headers[i].text.replace("\n", " ") for i in header_range]
         data.append(h)
         currency_unit = table.find_element(By.XPATH, ".//caption/span").text.strip()
@@ -269,8 +206,7 @@ class IrbankCrawler:
                         number -= 1
                     r.append(txt)
                 else:
-                    if cols[-1] == col or useAllColumns:
-                        r.append(col.text.replace("\n", " "))
+                    r.append(col.text.replace("\n", " "))
             data.append(r)
         columns = data[0]
         data = data[1:]
@@ -309,22 +245,19 @@ class IrbankCrawler:
 
         result_df = list_df[0]
         on_key = result_df.columns[0]
-        # Merge the subsequent DataFrames on the 'Title' column one by one
+
         for i in range(1, len(list_df)):
             result_df = result_df.merge(list_df[i], on=on_key, how='outer')
 
         return result_df
     
-    def getDataFromLink(self, link, useAllColumns=False):
+    def getDataFromLink(self, link):
         '''Get data from given document code 
 
             Parameters
             ----------
             link : str
                 Link to crawl
-
-            useAllColumns : bool
-                Extract all columns or not
 
             Returns
             -------
@@ -337,19 +270,22 @@ class IrbankCrawler:
         try:
             self.driver.get(link)
             table = self.driver.find_element(By.ID, f"c_{report_type}1")
-        except Exception as e:
+        except:
             print(f"============ {link} has no {report_type} data or something wrong with provided link")
             return dt_tables
-        dt_tables = self.getDataFromTable(table, useAllColumns)
+        dt_tables = self.getDataFromTable(table)
         return dt_tables
     
-    def getData(self, code, by="financial_code", report_type="pl"):
+    def getData(self, code, document_codes, by="symbol", report_type="pl"):
         '''Get data from given code 
         
             Parameters
             ----------
             code : str
                 Company code or Financial code
+
+            document_codes : list
+                List of document links
 
             by : str
                 Define type of code
@@ -364,41 +300,46 @@ class IrbankCrawler:
         
         '''
         self.newDriver()
-        if by == "finacial_code":
+        if by == "symbol":
             company_code = self.getCompanyCode(code)[1]
         elif by == "company_code":
             company_code = code
         else:
-            raise "Only valid with financial code or company code"
+            raise "Only valid with symbol or company code"
         
         if report_type not in ("pl", "bs"):
-            raise "Only valid with Income Statent or Balance Sheet type"
+            raise "Only valid with Income Statement or Balance Sheet type"
         
-        dfs = []
-
-        try:
-            document_codes = self.getValidDocumentCodes(company_code)
-        except:
-            print(f"============ {company_code} has no {report_type} data")
-            return pd.DataFrame()
+        dfs = defaultdict()
         
         for i, document_code in tqdm(enumerate(document_codes)):
-            print(document_code)
-            if by == "finacial_code":
+            print(i, document_code)
+            if "pl" not in document_code:
+                continue
+
+            if by == "symbol":
                 company_code = self.getCompanyCode(code)[1]
             elif by == "company_code":
                 company_code = code
             else:
                 raise "Only valid with financial code or company code"
             
+            if company_code not in document_code:
+                print("Link do not match with company code")
+                continue
+            
             if report_type not in ("pl", "bs"):
                 raise "Only valid with Income Statent or Balance Sheet type"
             
-            link = self.setDocumentLink(company_code, document_code, report_type)
-            dt_tables = self.getDataFromLink(link, i == len(document_codes) - 1)
-            dfs.extend(dt_tables)
+            link = document_code.replace("pl", str(report_type))
+
+            dt_tables = self.getDataFromLink(link)
+            for dt_table in dt_tables:
+                key_table = dt_table.columns.to_list()[1].strip()
+                if key_table not in dfs.keys():
+                    dfs[key_table] = dt_table
         try:
-            data = self.concatData(dfs)
+            data = self.concatData([v[1] for v in dfs.items()])
         except:
             data = pd.DataFrame()
             
