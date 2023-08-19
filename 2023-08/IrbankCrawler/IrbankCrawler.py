@@ -88,7 +88,8 @@ class IrbankCrawler:
         link = link.replace("financial_code", str(code))
         return link
 
-    def getCompanyCode(self, symbol):
+    @staticmethod
+    def getCompanyCode(symbol):
         '''Get the company code from symbol
 
             Parameters
@@ -98,8 +99,8 @@ class IrbankCrawler:
             
             Returns
             -------
-            [symbol, code] : list with shape of (2,)
-                Pair of symbol and code
+            code : str
+                Code of the symbol
         
         '''
         link = IrbankCrawler.setReportLink(symbol)
@@ -109,12 +110,12 @@ class IrbankCrawler:
             if response.status_code == 200:
                 report_url = response.url
                 code = report_url.split("/")[3]
-                return [symbol, code]
+                return code
             else:
                 print(f"Something wrong with {symbol}")
-                return [None, None]
+                return None
         except r.exceptions.RequestException:
-            return [None, None]
+            return None
 
     def normalizeSeries(self, series, delimiter="__"):
         '''Normalize series of string
@@ -278,19 +279,16 @@ class IrbankCrawler:
         dt_tables = self.getDataFromTable(table)
         return dt_tables
     
-    def getData(self, code, document_codes, by="symbol", report_type="pl"):
+    def getData(self, code, document_codes, report_type="pl"):
         '''Get data from given code 
         
             Parameters
             ----------
             code : str
-                Company code or Financial code
+                Company code
 
             document_codes : list
                 List of document links
-
-            by : str
-                Define type of code
 
             report_type : str
                 Define type of report (profit and loss or balance sheet)
@@ -302,12 +300,6 @@ class IrbankCrawler:
         
         '''
         self.newDriver()
-        if by == "symbol":
-            company_code = self.getCompanyCode(code)[1]
-        elif by == "company_code":
-            company_code = code
-        else:
-            raise "Only valid with symbol or company code"
         
         if report_type not in ("pl", "bs"):
             raise "Only valid with Income Statement or Balance Sheet type"
@@ -319,14 +311,7 @@ class IrbankCrawler:
             if "pl" not in document_code:
                 continue
 
-            if by == "symbol":
-                company_code = self.getCompanyCode(code)[1]
-            elif by == "company_code":
-                company_code = code
-            else:
-                raise "Only valid with financial code or company code"
-            
-            if company_code not in document_code:
+            if code not in document_code:
                 print("Link do not match with company code")
                 continue
             
