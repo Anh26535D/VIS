@@ -1,7 +1,7 @@
 import requests as r
 import pandas as pd
 from bs4 import BeautifulSoup
-from selenium.webdriver.common.by import By
+
 from collections import Counter, defaultdict
 from tqdm import tqdm
 
