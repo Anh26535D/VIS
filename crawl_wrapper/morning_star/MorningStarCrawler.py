@@ -1,11 +1,17 @@
 import requests
 import pandas as pd
 import json
-from selenium.common.exceptions import NoSuchElementException
+from time import sleep
 
+from typing import Tuple
+
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium import webdriver
 from selenium.webdriver import edge
+from selenium.webdriver.support.select import Select
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 import sys
 import codecs
@@ -16,9 +22,8 @@ except:
     pass
 
 
-class MorningStartCrawler:
-    base_url = "https://www.morningstar.com/stocks/xasx/"
-    bear_token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1EY3hOemRHTnpGRFJrSTRPRGswTmtaRU1FSkdOekl5TXpORFJrUTROemd6TWtOR016bEdOdyJ9.eyJodHRwczovL21vcm5pbmdzdGFyLmNvbS9tc3Rhcl9pZCI6IkM5NEE5NzE0LTlDNTMtNEFDRS1BQ0YyLTA1NkM0N0YzOTUwQiIsImh0dHBzOi8vbW9ybmluZ3N0YXIuY29tL2VtYWlsX3ZlcmlmaWVkIjpmYWxzZSwiaHR0cHM6Ly9tb3JuaW5nc3Rhci5jb20vZW1haWwiOiJyZXNlYXJjaDEwMDFAbXN0YXIuY29tIiwiaHR0cHM6Ly9tb3JuaW5nc3Rhci5jb20vcm9sZSI6WyJMaWNlbnNlLlJpc2tNb2RlbEFkdmFuY2VkIiwiUFMuQ2FuUHVibGlzaFRlbXBsYXRlIiwiVmVsb1VJLkFsbG93QWNjZXNzIl0sImh0dHBzOi8vbW9ybmluZ3N0YXIuY29tL2NvbXBhbnlfaWQiOiJhM2Q2NTc0OC1iNDdlLTRkM2EtOWZjNi04MDZhOGMwM2Y0YjciLCJodHRwczovL21vcm5pbmdzdGFyLmNvbS9pbnRlcm5hbF9jb21wYW55X2lkIjoiQ2xpZW50MCIsImh0dHBzOi8vbW9ybmluZ3N0YXIuY29tL2RhdGFfcm9sZSI6WyJRUy5NYXJrZXRzIiwiUVMuUHVsbHFzIl0sImh0dHBzOi8vbW9ybmluZ3N0YXIuY29tL2NvbmZpZ19pZCI6Ik1TRVJQX1FTX1BST0YiLCJodHRwczovL21vcm5pbmdzdGFyLmNvbS91aW1fcm9sZXMiOiJPRkZJQ0VfRlJFRSxBUkNfRlVORFMsRUFNUyxBSV9NRU1CRVJfMV8wLEFVX01FTUJFUl8xXzAsSUNfTUVNQkVSXzJfMCxNRF9NRU1CRVJfMV8xLFJRX01FTUJFUl8xXzEsRk5fTUVNQkVSXzFfMCxBUkNfTUFSS0VUUyxTRV9NRU1CRVJfMl8wLEFVQVJDX1VTRVIsQ0FfTUVNQkVSXzFfMCxBUkNfQ1JFRElULEZEX01FTUJFUl8xXzEwMDAwMDAxMDAsVUtfTUVNQkVSXzFfMCxETV9NRU1CRVJfMV8wLEFSQ19FVEYsQVJDX0VRVUlUWSxNVV9NRU1CRVJfMV8wLE1JX01FTUJFUl8xXzAsRE9UX0NPTV9QUkVNSVVNIiwiaXNzIjoiaHR0cHM6Ly9sb2dpbi1wcm9kLm1vcm5pbmdzdGFyLmNvbS8iLCJzdWIiOiJhdXRoMHxDOTRBOTcxNC05QzUzLTRBQ0UtQUNGMi0wNTZDNDdGMzk1MEIiLCJhdWQiOlsiaHR0cHM6Ly9hdXRoMC1hd3Nwcm9kLm1vcm5pbmdzdGFyLmNvbS9tYWFzIiwiaHR0cHM6Ly91aW0tcHJvZC5tb3JuaW5nc3Rhci5hdXRoMC5jb20vdXNlcmluZm8iXSwiaWF0IjoxNjkyOTgwODY3LCJleHAiOjE2OTI5ODQ0NjcsImF6cCI6ImlRa1d4b2FwSjlQeGw4Y0daTHlhWFpzYlhWNzlnNjRtIiwic2NvcGUiOiJvcGVuaWQiLCJndHkiOiJwYXNzd29yZCJ9.sgIDZiT2pUTeedLuyH58OLZB9v0c5923TsmmwREKwuqUCHxbWj_gFas_-20HZmuISeh3DZGT_JcCrqs7k0Qb3iAUo4BcvHciq6RnHbT5rOXdiWoEbxAo95kkfxGMaP10FN0KoM1f6dooLoytSpXDl0T4kT5X03U4UVFJK-_Mbq1P0qg15EmbCQG4UgntvCR0Y7xQWdsMi0szWRU_Rt8TqgfLS_W3bhtn1snSN-nRPwJx_EGgvxmbNgP0bKbgNR01lo_KAfjODn4bMT2X2OowApiif-txG0wcMdA35O72dbaqoCB3zV4NwBVx5D68w84gyjcAidU5bOVD5wtf0U6t1Q"
+class MorningStarCrawler:
+    base_url = "https://www.morningstar.com/stocks/xasx"
 
     def __init__(self, bear_token=None) -> None:
         self.options = edge.options.Options()
@@ -27,13 +32,26 @@ class MorningStartCrawler:
 
         self.bear_token = bear_token
 
-    def resetDriver(self):
+    def resetDriver(self) -> None:
         self.driver = webdriver.Edge(options=self.options)
 
-    def closeDriver(self):
+    def closeDriver(self) -> None:
         self.driver.close()
 
-    def getPriceData(self, symbol="14d", startDate="2000-01-01", endDate="2023-08-23"):
+    def isPageExist(self, url) -> bool:
+        text_to_check = "Like guarantees of future returns, this page doesn’t exist."
+        self.resetDriver()
+        self.driver.get(url)
+        try:
+            WebDriverWait(self.driver, 5).until(EC.text_to_be_present_in_element((By.TAG_NAME, 'body'), text_to_check))
+            self.closeDriver()
+            return False
+        except:
+            self.closeDriver()
+            return True
+
+
+    def getPriceDataFromAPI(self, symbol="14d", startDate="2000-01-01", endDate="2023-08-23") -> Tuple[pd.DataFrame, str]:
         self.resetDriver()
 
         self.driver.get(f"https://www.morningstar.com/stocks/xasx/{symbol}/chart")
@@ -66,3 +84,64 @@ class MorningStartCrawler:
             except:
                 return pd.DataFrame(), "Something wrong"
         return pd.DataFrame(), "Status code is not 200. Your bearer token might be expired."
+
+    def getPriceData(self, symbol="bhp", timeout=300) -> Tuple[pd.DataFrame, str]:
+        url = f"{self.base_url}/{symbol}/chart"
+        if not self.isPageExist(url):
+            return pd.DataFrame(), "Page not found"
+        
+        self.resetDriver()
+        self.driver.get(url)
+
+        while timeout>0:
+            try:
+                range_buttons = self.driver.find_elements(by=By.CSS_SELECTOR, value='button[class="mds-button___markets mds-button--flat___markets markets-ui-button mwc-markets-chart-time-interval__btn"]')
+                range_buttons[-1].click()
+                break
+            except IndexError as idxerror:
+                timeout -= 1
+                sleep(1)
+                continue
+        if timeout == 0:
+            return pd.DataFrame(), "Time is out when finding range button"
+
+        freq_select = self.driver.find_element(by=By.CSS_SELECTOR, value='select[class="mds-select__input___markets"]')
+        Select(freq_select).select_by_value("d")
+
+        table_button = self.driver.find_element(by=By.CSS_SELECTOR, value='button[aria-label="Table"][class="mds-button___markets mds-button--icon-only___markets mds-button--large___markets markets-ui-button"]')
+        table_button.click()
+
+        market_select = self.driver.find_elements(by=By.CSS_SELECTOR, value='select[class="mds-select__input___markets"]')
+        Select(market_select[1]).select_by_value("priceVolumeDetail")
+
+        while timeout>0:
+            try:
+                market_select = self.driver.find_elements(by=By.CSS_SELECTOR, value='select[class="mds-select__input___markets"]')
+                Select(market_select[3]).select_by_value("-1")
+                break
+            except IndexError as idxerror:
+                timeout -= 1
+                sleep(1)
+                continue
+        if timeout == 0:
+            return pd.DataFrame(), "Time is out when setting -1"
+        
+        while timeout>0:
+            try:
+                div_table = self.driver.find_element(by=By.CSS_SELECTOR, value='div[class="mwc-markets-chart-table"]')
+                table = div_table.find_element(by=By.TAG_NAME, value="table")
+                break
+            except NoSuchElementException as noeleexcept:
+                timeout -= 1
+                sleep(1)
+                continue
+        if timeout == 0:
+            return pd.DataFrame(), "Time is out when finding table"
+
+        html_table = table.get_attribute("outerHTML")
+        data = pd.read_html(html_table)[0]
+        data["Date"] = pd.to_datetime(data["Date"])
+
+        self.closeDriver()
+
+        return data, "OK"

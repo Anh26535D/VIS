@@ -1,6 +1,6 @@
 import requests as r
 import pandas as pd
-from bs4 import BeautifulSoup
+from selenium.webdriver.common.by import By
 
 from collections import Counter, defaultdict
 from tqdm import tqdm
@@ -308,7 +308,7 @@ class IrbankCrawler:
         
         for i, document_code in tqdm(enumerate(document_codes)):
             print(i, document_code)
-            if "pl" not in document_code:
+            if ("pl" not in document_code) or (document_code.split("/")[-2].startswith("S")):
                 continue
 
             if code not in document_code:
