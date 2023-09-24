@@ -2,17 +2,22 @@ from IntelligentInvestorCrawler import IntelligentInvestorCrawler
 import os
 import pandas as pd
 
-base_path = r"E:\vis\vis_repo\2023-08\intelligent_investor"
+IGNORE_FLAG = True
+
+base_path = r"E:\vis\vis_repo\crawl_wrapper\intelligent_investor"
 list_symbols_path = os.path.join(base_path, "list_companies.csv")
 save_path = os.path.join(base_path, "price_data")
 log_path = os.path.join(base_path, "error_symbols.txt")
 
 symbols = pd.read_csv(list_symbols_path).values.flatten(order="F")
-symbols = symbols[pd.notna(symbols)]
-num_symbols = len(symbols)
+symbols = symbols[pd.notna(symbols)].tolist()
 
 crawler = IntelligentInvestorCrawler()
 
+if IGNORE_FLAG:
+    crawled_symbols = [symbol.split(".")[0] for symbol in os.listdir(save_path)]
+    symbols = [symbol for symbol in symbols if symbol not in crawled_symbols]
+num_symbols = len(symbols)
 
 for i, symbol in enumerate(symbols):
     print(f"====> {i}/{num_symbols} ===> start with {symbol}", end=" ")
