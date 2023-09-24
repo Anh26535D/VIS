@@ -1,5 +1,8 @@
 __pycache__
 price_data
-error_symbols.txt
+financial
 test.ipynb
-list_companies.csv
+*.csv
+*.json
+*.txt
+*.xls
