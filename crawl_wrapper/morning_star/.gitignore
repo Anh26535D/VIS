@@ -1,3 +1,7 @@
 __pycache__
 price_data
 financial
+*.csv
+*.json
+*.txt
+*.xls
